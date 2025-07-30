@@ -22,23 +22,23 @@ class TabBarViewController: UITabBarController {
         cartViewController.navigationItem.largeTitleDisplayMode = .always
         
         let navigationSearch = UINavigationController(rootViewController: searchViewController)
-        let navigationCart = UINavigationController(rootViewController: cartViewController)
         
         navigationSearch.navigationBar.prefersLargeTitles = true
-        navigationCart.navigationBar.prefersLargeTitles = true
         
-        setViewControllers([navigationSearch, navigationCart], animated: false)
-    }
-    
+        setViewControllers([navigationSearch, cartViewController], animated: false)
+        print(0)
+        if let items = tabBar.items {
+            print(1)
+            
+            items[0].title = "검색 탭"
+            
+            items[0].image = UIImage(systemName: "magnifyingglass")
+            
+            print(2)
+            items[1].title = "담은 책 리스트 탭"
+            items[1].image = UIImage(systemName: "cart")
+        }
 
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
     }
-    */
 
 }

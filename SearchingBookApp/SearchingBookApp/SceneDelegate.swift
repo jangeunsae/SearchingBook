@@ -19,22 +19,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         guard let windowScene = (scene as? UIWindowScene) else { return }
         window = UIWindow(windowScene: windowScene)
         
-        let tabBarController = UITabBarController()
-        let firstViewController = UINavigationController(rootViewController: SearchViewController())
-        let secondViewController = UINavigationController(rootViewController: CartViewController())
-        
-            tabBarController.setViewControllers([firstViewController, secondViewController], animated: true)
-        
-        if let items = tabBarController.tabBar.items {
-            items[0].title = "검색 탭"
-            items[0].image = UIImage(systemName: "magnifyingglass")
-            
-            
-            items[1].title = "담은 책 리스트 탭"
-            items[1].image = UIImage(systemName: "cart")
-        }
-        
-        window?.rootViewController = tabBarController
+        window?.rootViewController = TabBarViewController()
         window?.makeKeyAndVisible()
     }
     
