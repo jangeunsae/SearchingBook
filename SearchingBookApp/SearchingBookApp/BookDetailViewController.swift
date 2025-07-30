@@ -18,7 +18,8 @@ class BookDetailViewController: UIViewController /*UITableViewDataSource, UITabl
     let detailContentLabel = UILabel()
     let escapeButton = UIButton()
     let cartButton = UIButton()
-
+    var book: BooksData?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(bookDetailTableView)

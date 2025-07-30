@@ -8,6 +8,26 @@
 import UIKit
 import SnapKit
 
+struct BooksDataResponse: Codable {
+    let documents: [BooksData]
+}
+
+struct BooksData: Codable {
+    let title: String?
+    let contents: String?
+    let salePrice: Int?
+    let authors: [String]?
+    let thumbnail: String
+    
+    enum CodingKeys: String, CodingKey {
+        case title
+        case contents
+        case salePrice = "sale_price"
+        case authors
+        case thumbnail
+    }
+}
+
 class SearchViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     let searchTableView =  UITableView()
@@ -16,11 +36,8 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     var recentBookImages: [UIImage] = ["person.circle", "person.circle.fill"]
         .compactMap { UIImage(systemName: $0) }
     
-    var searchResultArray: [[String: Any]] = [
-        ["title": "Swift 신", "author": "장은새", "price": 20000],
-        ["title": "iOS 마스터", "author": "송명균", "price": 15000],
-        ["title": "Xcode 왕초보", "author": "이돈혁", "price": 10000]
-    ]
+    var searchResultArray: [BooksData] = []
+    var savedBooks: [BooksData] = []
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,7 +73,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return section == 0 ?
-        recentBookImages.count :
+        savedBooks.count :
         searchResultArray.count
     }
     
@@ -75,38 +92,94 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "RecentBookImageCell", for: indexPath) as! RecentBookImageCell
-            cell.configure(thumbnail: recentBookImages[indexPath.row])
+            let cell = tableView.dequeueReusableCell(withIdentifier: "SearchBookCell", for: indexPath) as! SearchBookCell
+            let book = savedBooks[indexPath.row]
+            cell.bookTitleLabel.text = book.title ?? ""
+            cell.bookAuthorLabel.text = book.authors?.joined(separator: ", ") ?? ""
+            if let price = book.salePrice {
+                let formatter = NumberFormatter()
+                formatter.numberStyle = .decimal
+                cell.bookPriceLabel.text = "\(formatter.string(from: NSNumber(value: price)) ?? "")원"
+            } else {
+                cell.bookPriceLabel.text = ""
+            }
             return cell
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "SearchBookCell", for: indexPath) as! SearchBookCell
             let book = searchResultArray[indexPath.row]
-            cell.bookTitleLabel.text = book["title"] as? String
-            cell.bookAuthorLabel.text = book["author"] as? String
-            cell.bookPriceLabel.text = "\(book["price"] as? Int ?? 0)원"
+            cell.bookTitleLabel.text = book.title ?? ""
+            cell.bookAuthorLabel.text = book.authors?.joined(separator: ", ") ?? ""
+            if let price = book.salePrice {
+                let formatter = NumberFormatter()
+                formatter.numberStyle = .decimal
+                cell.bookPriceLabel.text = "\(formatter.string(from: NSNumber(value: price)) ?? "")원"
+            } else {
+                cell.bookPriceLabel.text = ""
+            }
             return cell
         }
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard indexPath.section == 1 else { return }
-        
+        if indexPath.section == 1 {
+            handleSearchResultSelection(at: indexPath)
+        } else if indexPath.section == 0 {
+            handleSavedBookSelection(at: indexPath)
+        }
+    }
+    
+    private func handleSearchResultSelection(at indexPath: IndexPath) {
+        let selectedBook = searchResultArray[indexPath.row]
+        savedBooks.append(selectedBook)
+        searchResultArray = []
+        searchTableView.reloadData()
+        searchBar.text = ""
+        searchBar.resignFirstResponder()
+    }
+    
+    private func handleSavedBookSelection(at indexPath: IndexPath) {
+        let selectedBook = savedBooks[indexPath.row]
         let modalViewController = BookDetailViewController()
+        modalViewController.book = selectedBook
         modalViewController.modalPresentationStyle = .fullScreen
         present(modalViewController, animated: true, completion: nil)
     }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        guard !searchText.isEmpty else {
+            searchResultArray = []
+            searchTableView.reloadData()
+            return
+        }
+        fetchBooks(with: searchText)
+    }
+    
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
         guard let keyword = searchBar.text else { return }
         fetchBooks(with: keyword)
         searchBar.resignFirstResponder()
     }
+    
     func fetchBooks(with keyword: String) {
         let query = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
         let urlString = "https://dapi.kakao.com/v3/search/book?query=\(query ?? "")&target=title"
         guard let url = URL(string: urlString) else { return }
         
-        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
-            guard let self = self else { return }
-        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.addValue("KakaoAK 1053399f69b04ae09fb1272ae4cab4b3", forHTTPHeaderField: "Authorization")
+
+        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+            guard let self = self, let data = data, error == nil else { return }
+            do {
+                let decoded = try JSONDecoder().decode(BooksDataResponse.self, from: data)
+                DispatchQueue.main.async {
+                    self.searchResultArray = decoded.documents
+                    self.searchTableView.reloadData()
+                }
+            } catch {
+                print("디코딩 실패:", error)
+            }
+        }.resume()
     }
     
 }
@@ -134,19 +207,25 @@ class SearchBookCell: UITableViewCell {
         }
         bookTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(contentView).inset(16)
-            make.centerX.equalToSuperview()
+            make.leading.equalTo(contentView).inset(15)
+            make.centerY.equalToSuperview()
         }
+        bookTitleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 800), for: .horizontal)
+
         bookAuthorLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(bookTitleLabel).offset(150)
-            make.centerX.equalToSuperview()
+            make.leading.equalTo(bookTitleLabel.snp.trailing).offset(10)
+            make.centerY.equalToSuperview()
         }
+        bookAuthorLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 200), for: .horizontal)
+        
         bookPriceLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(bookAuthorLabel).offset(150)
-            make.centerX.equalToSuperview()
+            make.leading.equalTo(bookAuthorLabel.snp.trailing).offset(10)
+            make.trailing.equalTo(contentView).inset(15)
+            make.centerY.equalToSuperview()
         }
+        bookPriceLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 800), for: .horizontal)
     }
 }
 class RecentBookImageCell: UITableViewCell {
