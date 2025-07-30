@@ -87,6 +87,14 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
             return cell
         }
     }
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        guard indexPath.section == 1 else { return }
+        
+        let modalViewController = BookDetailViewController()
+        modalViewController.modalPresentationStyle = .fullScreen
+        present(modalViewController, animated: true, completion: nil)
+    }
+    
 }
 
 class SearchBookCell: UITableViewCell {
@@ -110,7 +118,6 @@ class SearchBookCell: UITableViewCell {
             $0.font = .systemFont(ofSize: 15)
             $0.textColor = .black
         }
-        
         bookTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
             make.leading.trailing.equalTo(contentView).inset(16)
@@ -125,7 +132,6 @@ class SearchBookCell: UITableViewCell {
             make.top.equalTo(contentView).offset(15)
             make.leading.trailing.equalTo(bookAuthorLabel).offset(150)
             make.centerX.equalToSuperview()
-            
         }
     }
 }
@@ -156,7 +162,6 @@ class RecentBookImageCell: UITableViewCell {
         thumbnailImageView.image = thumbnail
     }
 }
-
 #Preview {
     SearchViewController()
 }

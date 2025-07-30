@@ -19,6 +19,7 @@ class BookDetailViewController: UIViewController {
     let cartButton = UIButton()
 
     override func viewDidLoad() {
+        view.backgroundColor = .green
         super.viewDidLoad()
         view.addSubview(bookDetailTableView)
         view.addSubview(detailTitleLabel)
