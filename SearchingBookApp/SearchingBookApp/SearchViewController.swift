@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 
-class SearchViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class SearchViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UISearchBarDelegate {
     
     let searchTableView =  UITableView()
     let searchBar = UISearchBar()
@@ -25,6 +25,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        searchBar.delegate = self
     }
     
     private func setupView() {
@@ -92,6 +93,20 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
         let modalViewController = BookDetailViewController()
         modalViewController.modalPresentationStyle = .fullScreen
         present(modalViewController, animated: true, completion: nil)
+    }
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        guard let keyword = searchBar.text else { return }
+        fetchBooks(with: keyword)
+        searchBar.resignFirstResponder()
+    }
+    func fetchBooks(with keyword: String) {
+        let query = keyword.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)
+        let urlString = "https://dapi.kakao.com/v3/search/book?query=\(query ?? "")&target=title"
+        guard let url = URL(string: urlString) else { return }
+        
+        URLSession.shared.dataTask(with: url) { [weak self] data, _, error in
+            guard let self = self else { return }
+        }
     }
     
 }

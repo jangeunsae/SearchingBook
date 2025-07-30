@@ -21,11 +21,7 @@ class TabBarViewController: UITabBarController {
         searchViewController.navigationItem.largeTitleDisplayMode = .always
         cartViewController.navigationItem.largeTitleDisplayMode = .always
         
-        let navigationSearch = UINavigationController(rootViewController: searchViewController)
-        
-        navigationSearch.navigationBar.prefersLargeTitles = true
-        
-        setViewControllers([navigationSearch, cartViewController], animated: false)
+        setViewControllers([searchViewController, cartViewController], animated: false)
         print(0)
         if let items = tabBar.items {
             print(1)

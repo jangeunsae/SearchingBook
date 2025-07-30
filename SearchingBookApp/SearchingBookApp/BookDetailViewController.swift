@@ -8,7 +8,7 @@
 import UIKit
 import SnapKit
 
-class BookDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+class BookDetailViewController: UIViewController /*UITableViewDataSource, UITableViewDelegate*/ {
 
     let bookDetailTableView = UITableView()
     let detailTitleLabel = UILabel()
@@ -24,8 +24,8 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
         view.addSubview(bookDetailTableView)
         bookDetailTableView.register(SearchBookCell.self, forCellReuseIdentifier: "SearchBookCell")
         bookDetailTableView.register(RecentBookImageCell.self, forCellReuseIdentifier: "RecentBookImageCell")
-        bookDetailTableView.dataSource = self
-        bookDetailTableView.delegate = self
+//        bookDetailTableView.dataSource = self
+//        bookDetailTableView.delegate = self
         bookDetailTableView.snp.makeConstraints { make in
         }
         view.addSubview(detailTitleLabel)
@@ -47,13 +47,13 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
 
     }
     
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        <#code#>
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        <#code#>
-    }
-    
-    
+//    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+//        <#code#>
+//    }
+//    
+//    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+//        <#code#>
+//    }
+//    
+//    
 }
