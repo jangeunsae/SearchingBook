@@ -17,7 +17,7 @@ struct BooksData: Codable {
     let contents: String?
     let salePrice: Int?
     let authors: [String]?
-    let thumbnail: String
+    let thumbnail: String?
     
     enum CodingKeys: String, CodingKey {
         case title
@@ -168,7 +168,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
         request.httpMethod = "GET"
         request.addValue("KakaoAK 1053399f69b04ae09fb1272ae4cab4b3", forHTTPHeaderField: "Authorization")
 
-        URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
+        URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
             guard let self = self, let data = data, error == nil else { return }
             do {
                 let decoded = try JSONDecoder().decode(BooksDataResponse.self, from: data)

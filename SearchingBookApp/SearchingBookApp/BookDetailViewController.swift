@@ -8,12 +8,12 @@
 import UIKit
 import SnapKit
 
-class BookDetailViewController: UIViewController /*UITableViewDataSource, UITableViewDelegate*/ {
-
+class BookDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
+    
     let bookDetailTableView = UITableView()
     let detailTitleLabel = UILabel()
     let datailAuthorLabel = UILabel()
-    let imageView = UIImageView()
+    let thumbnailImageView = UIImageView()
     let detailPriceLabel = UILabel()
     let detailContentLabel = UILabel()
     let escapeButton = UIButton()
@@ -23,38 +23,121 @@ class BookDetailViewController: UIViewController /*UITableViewDataSource, UITabl
     override func viewDidLoad() {
         super.viewDidLoad()
         view.addSubview(bookDetailTableView)
-        bookDetailTableView.register(SearchBookCell.self, forCellReuseIdentifier: "SearchBookCell")
-        bookDetailTableView.register(RecentBookImageCell.self, forCellReuseIdentifier: "RecentBookImageCell")
-//        bookDetailTableView.dataSource = self
-//        bookDetailTableView.delegate = self
+        
+        bookDetailTableView.dataSource = self
+        bookDetailTableView.delegate = self
         bookDetailTableView.snp.makeConstraints { make in
+            make.top.leading.trailing.equalToSuperview()
+            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(80)
         }
-        view.addSubview(detailTitleLabel)
-        view.addSubview(datailAuthorLabel)
-        view.addSubview(imageView)
-        view.addSubview(detailPriceLabel)
-        view.addSubview(detailContentLabel)
-        view.addSubview(escapeButton)
-        escapeButton.snp.makeConstraints { make in
-            make.bottom.equalToSuperview().inset(20)
-            make.leading.equalToSuperview().inset(20)
-            escapeButton.setTitle("나가기", for: .normal)
-            escapeButton.setTitleColor(.white, for: .normal)
-            escapeButton.backgroundColor = .systemGray
-            escapeButton.titleLabel?.font = UIFont.systemFont(ofSize: 30, weight: .bold)
-            escapeButton.layer.cornerRadius = 10
+        escapeButton.setTitle("나가기", for: .normal)
+        escapeButton.backgroundColor = .systemGray
+        escapeButton.layer.cornerRadius = 10
+        escapeButton.titleLabel?.font = .systemFont(ofSize: 20)
+        escapeButton.addTarget(self, action: #selector(dismissModal), for: .touchUpInside)
+        
+        cartButton.setTitle("담기", for: .normal)
+        cartButton.backgroundColor = .systemBlue
+        cartButton.layer.cornerRadius = 10
+        cartButton.titleLabel?.font = .systemFont(ofSize: 20)
+        cartButton.addTarget(self, action: #selector(addToCart), for: .touchUpInside)
+        
+        
+        let buttonStackView = UIStackView(arrangedSubviews: [escapeButton, cartButton])
+        view.addSubview(buttonStackView)
+        buttonStackView.axis = .horizontal
+        buttonStackView.distribution = .fillEqually
+        buttonStackView.spacing = 20
+        buttonStackView.snp.makeConstraints { make in
+            make.leading.trailing.equalToSuperview().inset(20)
+            make.bottom.equalTo(view.safeAreaLayoutGuide).inset(20)
+            make.height.equalTo(50)
         }
-        view.addSubview(cartButton)
-
     }
     
-//    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-//        <#code#>
-//    }
-//    
-//    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-//        <#code#>
-//    }
-//    
-//    
+    func numberOfSections(in tableView: UITableView) -> Int {
+        return 1
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return 5 // title, author, image, price, contents
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = UITableViewCell()
+        cell.selectionStyle = .none
+        
+        guard let searchedBook = book else { return cell }
+        
+        switch indexPath.row {
+        case 0:
+            detailTitleLabel.text = searchedBook.title
+            detailTitleLabel.font = .boldSystemFont(ofSize: 20)
+            detailTitleLabel.textAlignment = .center
+            cell.contentView.addSubview(detailTitleLabel)
+            detailTitleLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+        case 1:
+            datailAuthorLabel.text = searchedBook.authors?.joined(separator: ", ") ?? ""
+            datailAuthorLabel.textColor = .gray
+            datailAuthorLabel.textAlignment = .center
+            cell.contentView.addSubview(datailAuthorLabel)
+            datailAuthorLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+        case 2:
+            let imageView = UIImageView()
+            imageView.contentMode = .scaleAspectFit
+            cell.contentView.addSubview(imageView)
+            imageView.snp.makeConstraints { make in
+                make.edges.equalToSuperview().inset(16)
+                make.height.equalTo(180)
+            }
+
+            if let url = URL(string: searchedBook.thumbnail ?? "") {
+                URLSession.shared.dataTask(with: url) { data, response, error in
+                    guard let data = data, let image = UIImage(data: data) else { return }
+                    DispatchQueue.main.async {
+                        imageView.image = image
+                    }
+                }.resume()
+            }
+        case 3:
+            let numberFormatter = NumberFormatter()
+            numberFormatter.numberStyle = .decimal
+            let formattedPrice = numberFormatter.string(from: NSNumber(value: searchedBook.salePrice ?? 0)) ?? "0"
+            detailPriceLabel.text = "\(formattedPrice)원"
+            detailPriceLabel.font = .boldSystemFont(ofSize: 17)
+            detailPriceLabel.textAlignment = .center
+            cell.contentView.addSubview(detailPriceLabel)
+            detailPriceLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+        case 4:
+            detailContentLabel.text = searchedBook.contents
+            detailContentLabel.numberOfLines = 0
+            detailContentLabel.font = .systemFont(ofSize: 14)
+            cell.contentView.addSubview(detailContentLabel)
+            detailContentLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+        default:
+            break
+        }
+        return cell
+    }
+    
+    @objc func dismissModal() {
+        dismiss(animated: true, completion: nil)
+    }
+    
+    @objc func addToCart() {
+        guard let searchedBook = book else { return }
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let bookToSave = Book(context: context)
+        bookToSave.title = searchedBook.title
+        bookToSave.author = searchedBook.authors?.joined(separator: ", ") ?? ""
+        bookToSave.salePrice = Int64(searchedBook.salePrice ?? 0 )
+        bookToSave.thumbnail = searchedBook.thumbnail
+        bookToSave.contents = searchedBook.contents
+        do {
+            try context.save()
+            print("저장 성공")
+        } catch {
+            print("저장 실패: \(error)")
+        }
+    }
 }
