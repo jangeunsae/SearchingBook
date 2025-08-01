@@ -61,7 +61,6 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     
-    
     private func setupView() {
         
         view.addSubview(deleteAllButton)
