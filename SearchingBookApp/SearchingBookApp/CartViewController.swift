@@ -17,7 +17,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     let cartTableview = UITableView()
     
     var cartAddArray: [[String: Any]] = []
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
@@ -56,9 +56,9 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         }
     }
     @objc func addButtonTapped(_ sender: UIButton) {
-        let moveViewController = TabBarViewController()
-        moveViewController.modalPresentationStyle = .fullScreen
-        present(moveViewController, animated: true, completion: nil)
+        if let tabBarController = self.tabBarController {
+            tabBarController.selectedIndex = 0
+        }
     }
     
     
