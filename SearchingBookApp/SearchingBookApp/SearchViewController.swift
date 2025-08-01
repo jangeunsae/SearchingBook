@@ -113,7 +113,8 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     private func handleSearchResultSelection(at indexPath: IndexPath) {
         let selectedBook = searchResultArray[indexPath.row]
-        savedBooks.append(selectedBook)
+        if checkTitleExists(selectedBook.title) {
+        } else { savedBooks.append(selectedBook)}
         searchTableView.reloadData()
         searchBar.text = ""
         searchBar.resignFirstResponder()
@@ -122,6 +123,14 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
         modalViewController.modalPresentationStyle = .fullScreen
         present(modalViewController, animated: true, completion: nil)
     }
+    private func checkTitleExists(_ title: String?) -> Bool {
+        for book in savedBooks {
+            if book.title == title {
+                    return true
+                }
+            }
+            return false
+        }
     
     private func handleSavedBookSelection(at indexPath: IndexPath) {
         let selectedBook = savedBooks[indexPath.row]
