@@ -33,7 +33,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     let searchTableView =  UITableView()
     let searchBar = UISearchBar()
-
+    
     var recentBookImages = UIImageView()
     
     var searchResultArray: [BooksData] = []
@@ -46,7 +46,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     private func setupView() {
-
+        
         view.addSubview(searchBar)
         
         searchBar.placeholder = "이곳에 검색어를 입력하세요."
@@ -64,7 +64,8 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
         
         searchTableView.snp.makeConstraints { make in
             make.top.equalTo(searchBar.snp.bottom).offset(10)
-            make.leading.trailing.bottom.equalToSuperview()
+            make.leading.trailing.equalToSuperview()
+            make.bottom.equalToSuperview().offset(-100)
         }
     }
     func numberOfSections(in tableView: UITableView) -> Int {
@@ -72,9 +73,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ?
-        savedBooks.count :
-        searchResultArray.count
+        return section == 0 ? savedBooks.count : searchResultArray.count
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
@@ -83,7 +82,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     func tableView(_ tableView: UITableView, willDisplayHeaderView view: UIView, forSection section: Int) {
         guard let header = view as? UITableViewHeaderFooterView else { return }
-
+        
         header.textLabel?.font = UIFont.boldSystemFont(ofSize: 25)
         header.textLabel?.textColor = UIColor.black
         header.textLabel?.textAlignment = .left
@@ -91,33 +90,18 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if indexPath.section == 0 {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SearchBookCell", for: indexPath) as! SearchBookCell
-            let book = savedBooks[indexPath.row]
-            cell.bookTitleLabel.text = book.title ?? ""
-            cell.bookAuthorLabel.text = book.authors?.joined(separator: ", ") ?? ""
-            if let price = book.salePrice {
-                let formatter = NumberFormatter()
-                formatter.numberStyle = .decimal
-                cell.bookPriceLabel.text = "\(formatter.string(from: NSNumber(value: price)) ?? "")원"
-            } else {
-                cell.bookPriceLabel.text = ""
-            }
-            return cell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchBookCell", for: indexPath) as! SearchBookCell
+        let book = indexPath.section == 0 ? savedBooks[indexPath.row] : searchResultArray[indexPath.row]
+        cell.bookTitleLabel.text = book.title ?? ""
+        cell.bookAuthorLabel.text = book.authors?.joined(separator: ", ") ?? ""
+        if let price = book.salePrice {
+            let formatter = NumberFormatter()
+            formatter.numberStyle = .decimal
+            cell.bookPriceLabel.text = "\(formatter.string(from: NSNumber(value: price)) ?? "")원"
         } else {
-            let cell = tableView.dequeueReusableCell(withIdentifier: "SearchBookCell", for: indexPath) as! SearchBookCell
-            let book = searchResultArray[indexPath.row]
-            cell.bookTitleLabel.text = book.title ?? ""
-            cell.bookAuthorLabel.text = book.authors?.joined(separator: ", ") ?? ""
-            if let price = book.salePrice {
-                let formatter = NumberFormatter()
-                formatter.numberStyle = .decimal
-                cell.bookPriceLabel.text = "\(formatter.string(from: NSNumber(value: price)) ?? "")원"
-            } else {
-                cell.bookPriceLabel.text = ""
-            }
-            return cell
+            cell.bookPriceLabel.text = ""
         }
+        return cell
     }
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section == 1 {
@@ -129,8 +113,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     private func handleSearchResultSelection(at indexPath: IndexPath) {
         let selectedBook = searchResultArray[indexPath.row]
-        searchResultArray.append(selectedBook)
-        searchResultArray = [selectedBook]
+        savedBooks.append(selectedBook)
         searchTableView.reloadData()
         searchBar.text = ""
         searchBar.resignFirstResponder()
@@ -142,6 +125,10 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     private func handleSavedBookSelection(at indexPath: IndexPath) {
         let selectedBook = savedBooks[indexPath.row]
+        let modalViewController = BookDetailViewController()
+        modalViewController.book = selectedBook
+        modalViewController.modalPresentationStyle = .fullScreen
+        present(modalViewController, animated: true, completion: nil)
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
