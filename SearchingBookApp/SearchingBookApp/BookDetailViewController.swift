@@ -41,6 +41,7 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
         cartButton.layer.cornerRadius = 10
         cartButton.titleLabel?.font = .systemFont(ofSize: 20)
         cartButton.addTarget(self, action: #selector(addToCart), for: .touchUpInside)
+        cartButton.addTarget(self, action: #selector(dismissModal), for: .touchUpInside)
         
         
         let buttonStackView = UIStackView(arrangedSubviews: [escapeButton, cartButton])
@@ -60,7 +61,7 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 5 // title, author, image, price, contents
+        return 5
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -107,13 +108,17 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
             detailPriceLabel.font = .boldSystemFont(ofSize: 17)
             detailPriceLabel.textAlignment = .center
             cell.contentView.addSubview(detailPriceLabel)
-            detailPriceLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+            detailPriceLabel.snp.makeConstraints { make in
+                make.edges.equalToSuperview().inset(16)
+            }
         case 4:
             detailContentLabel.text = searchedBook.contents
             detailContentLabel.numberOfLines = 0
             detailContentLabel.font = .systemFont(ofSize: 14)
             cell.contentView.addSubview(detailContentLabel)
-            detailContentLabel.snp.makeConstraints { make in make.edges.equalToSuperview().inset(16) }
+            detailContentLabel.snp.makeConstraints { make in
+                make.edges.equalToSuperview().inset(16)
+            }
         default:
             break
         }

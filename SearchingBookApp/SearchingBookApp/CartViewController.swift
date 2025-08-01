@@ -15,11 +15,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     let addButton = UIButton()
     let cartTableview = UITableView()
     
-    var cartAddArray: [[String: Any]] = [
-        ["title": "Swift 신2", "author": "장은새", "price": 20000],
-        ["title": "iOS 마스터2", "author": "송명균", "price": 15000],
-        ["title": "Xcode 왕초보2", "author": "이돈혁", "price": 10000]
-    ]
+    var cartAddArray: [[String: Any]] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()

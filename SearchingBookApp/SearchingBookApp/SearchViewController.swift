@@ -46,7 +46,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     private func setupView() {
-//coredata이용 검색데이터값을 가져와야함 + 이미지 + 최근검색순 + 검색한 내용이 없으면 섹션이 나타나지않도록
+
         view.addSubview(searchBar)
         
         searchBar.placeholder = "이곳에 검색어를 입력하세요."
@@ -129,19 +129,19 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     
     private func handleSearchResultSelection(at indexPath: IndexPath) {
         let selectedBook = searchResultArray[indexPath.row]
-        savedBooks.append(selectedBook)
-        searchResultArray = []
+        searchResultArray.append(selectedBook)
+        searchResultArray = [selectedBook]
         searchTableView.reloadData()
         searchBar.text = ""
         searchBar.resignFirstResponder()
-    }
-    
-    private func handleSavedBookSelection(at indexPath: IndexPath) {
-        let selectedBook = savedBooks[indexPath.row]
         let modalViewController = BookDetailViewController()
         modalViewController.book = selectedBook
         modalViewController.modalPresentationStyle = .fullScreen
         present(modalViewController, animated: true, completion: nil)
+    }
+    
+    private func handleSavedBookSelection(at indexPath: IndexPath) {
+        let selectedBook = savedBooks[indexPath.row]
     }
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
@@ -254,7 +254,4 @@ class RecentBookImageCell: UITableViewCell {
     func configure(thumbnail: UIImage) {
         thumbnailImageView.image = thumbnail
     }
-}
-#Preview {
-    SearchViewController()
 }
