@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import CoreData
 
 class CartViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -20,7 +21,46 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+        fetchBooksData()
     }
+    
+    func fetchBooksData() {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName:"Book")
+        do {
+            let books = try context.fetch(fetchRequest)
+            cartAddArray = books.map { book in
+                var dict: [String: Any] = [:]
+                dict["title"] = book.value(forKey: "title") as? String ?? ""
+                dict["author"] = book.value(forKey: "author") as? String ?? ""
+                dict["price"] = book.value(forKey: "salePrice") as? Int ?? 0
+                return dict
+            }
+            cartTableview.reloadData()
+        } catch {
+            print("데이터 로딩 실패: \(error)")
+        }
+    }
+    
+    @objc func deleteAllBooks() {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let fetchRequest: NSFetchRequest<NSFetchRequestResult> = NSFetchRequest(entityName: "Book")
+        let deleteRequest = NSBatchDeleteRequest(fetchRequest: fetchRequest)
+        
+        do {
+            try context.execute(deleteRequest)
+            try context.save()
+            cartAddArray.removeAll()
+            cartTableview.reloadData()
+        } catch {
+        }
+    }
+    @objc func addButtonTapped(_ sender: UIButton) {
+        let moveViewController = TabBarViewController()
+        moveViewController.modalPresentationStyle = .fullScreen
+        present(moveViewController, animated: true, completion: nil)
+    }
+    
     
     private func setupView() {
         
@@ -32,6 +72,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
             make.top.equalTo(view.safeAreaLayoutGuide).offset(15)
             make.leading.equalToSuperview().offset(20)
         }
+        deleteAllButton.addTarget(self, action: #selector(deleteAllBooks), for: .touchUpInside)
         
         view.addSubview(cartTitleLabel)
         cartTitleLabel.text = "담은 책"
@@ -49,6 +90,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
             make.top.equalTo(view.safeAreaLayoutGuide).offset(15)
             make.trailing.equalToSuperview().offset(-20)
         }
+        addButton.addTarget(self, action: #selector(addButtonTapped), for: .touchUpInside)
         
         view.addSubview(cartTableview)
         cartTableview.dataSource = self
@@ -58,6 +100,7 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         cartTableview.snp.makeConstraints { make in
             make.top.equalTo(cartTitleLabel.snp.bottom).offset(25)
             make.leading.trailing.bottom.equalToSuperview()
+            make.bottom.equalToSuperview().inset(100)
         }
     }
     
@@ -68,9 +111,13 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "cartAddCell", for: indexPath) as! cartAddCell
         let addBook = cartAddArray[indexPath.row]
+        let numberFormatter = NumberFormatter()
+        numberFormatter.numberStyle = .decimal
+        let price = addBook["price"] as? Int ?? 0
+        let formattedCartPrice = numberFormatter.string(from: NSNumber(value: price)) ?? "0"
         cell.bookTitleLabel.text = addBook["title"] as? String
         cell.bookAuthorLabel.text = addBook["author"] as? String
-        cell.bookPriceLabel.text = "\(addBook["price"] as? Int ?? 0)원"
+        cell.bookPriceLabel.text = "\(formattedCartPrice)원"
         return cell
     }
 }
@@ -98,23 +145,24 @@ class cartAddCell: UITableViewCell {
         
         bookTitleLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(contentView).inset(16)
-            make.centerX.equalToSuperview()
+            make.leading.equalTo(contentView).inset(15)
+            make.centerY.equalToSuperview()
         }
+        bookTitleLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 800), for: .horizontal)
+        
         bookAuthorLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(bookTitleLabel).offset(150)
-            make.centerX.equalToSuperview()
+            make.leading.equalTo(bookTitleLabel.snp.trailing).offset(10)
+            make.centerY.equalToSuperview()
         }
+        bookAuthorLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 200), for: .horizontal)
+        
         bookPriceLabel.snp.makeConstraints { make in
             make.top.equalTo(contentView).offset(15)
-            make.leading.trailing.equalTo(bookAuthorLabel).offset(150)
-            make.centerX.equalToSuperview()
-            
+            make.leading.equalTo(bookAuthorLabel.snp.trailing).offset(10)
+            make.trailing.equalTo(contentView).inset(15)
+            make.centerY.equalToSuperview()
         }
+        bookPriceLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 800), for: .horizontal)
     }
-}
-
-#Preview {
-    CartViewController()
 }
