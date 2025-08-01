@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import CoreData
 
 struct BooksDataResponse: Codable {
     let documents: [BooksData]
@@ -33,8 +34,7 @@ class SearchViewController: UIViewController, UITableViewDataSource, UITableView
     let searchTableView =  UITableView()
     let searchBar = UISearchBar()
 
-    var recentBookImages: [UIImage] = ["person.circle", "person.circle.fill"]
-        .compactMap { UIImage(systemName: $0) }
+    var recentBookImages = UIImageView()
     
     var searchResultArray: [BooksData] = []
     var savedBooks: [BooksData] = []
