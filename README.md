@@ -33,19 +33,21 @@ SearchingBookApp은 사용자가 책을 검색하고, 선택한 책을 상세히
 ---
 
 ## 폴더 구조
+```plaintext
 SearchingBookApp/
-├── CartViewController.swift
-├── SearchViewController.swift
-├── BookDetailViewController.swift
-├── TabBarViewController.swift
-├── AppDelegate.swift
-├── SceneDelegate.swift
-├── Info.plist
+├── CartViewController.swift  
+├── SearchViewController.swift  
+├── BookDetailViewController.swift  
+├── TabBarViewController.swift  
+├── AppDelegate.swift  
+├── SceneDelegate.swift  
+├── Info.plist  
 ├── Assets.xcassets/
 ├── Base.lproj/
-│   ├── LaunchScreen.storyboard
-│   └── Main.storyboard
-├── SearchingBookApp.xcdatamodeld/
+│   ├── LaunchScreen.storyboard  
+│   └── Main.storyboard  
+└── SearchingBookApp.xcdatamodeld/
+```
 
 ## Kakao API 연동 방법
 1.	https://developers.kakao.com 접속 → 앱 생성
