@@ -21,7 +21,7 @@ SearchingBookApp은 사용자가 책을 검색하고, 선택한 책을 상세히
 
 ---
 
-## 🧱 기술 스택
+## 기술 스택
 
 - **UIKit**
 - **Swift**
@@ -32,7 +32,7 @@ SearchingBookApp은 사용자가 책을 검색하고, 선택한 책을 상세히
 
 ---
 
-## 🗂️ 폴더 구조
+## 폴더 구조
 SearchingBookApp/
 ├── CartViewController.swift
 ├── SearchViewController.swift
