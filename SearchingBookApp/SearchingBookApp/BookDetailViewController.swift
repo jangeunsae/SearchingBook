@@ -7,6 +7,7 @@
 
 import UIKit
 import SnapKit
+import CoreData
 
 class BookDetailViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -41,7 +42,6 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
         cartButton.layer.cornerRadius = 10
         cartButton.titleLabel?.font = .systemFont(ofSize: 20)
         cartButton.addTarget(self, action: #selector(addToCart), for: .touchUpInside)
-        cartButton.addTarget(self, action: #selector(dismissModal), for: .touchUpInside)
         
         
         let buttonStackView = UIStackView(arrangedSubviews: [escapeButton, cartButton])
@@ -91,7 +91,7 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
                 make.edges.equalToSuperview().inset(16)
                 make.height.equalTo(180)
             }
-
+            
             if let url = URL(string: searchedBook.thumbnail ?? "") {
                 URLSession.shared.dataTask(with: url) { data, response, error in
                     guard let data = data, let image = UIImage(data: data) else { return }
@@ -131,18 +131,56 @@ class BookDetailViewController: UIViewController, UITableViewDataSource, UITable
     
     @objc func addToCart() {
         guard let searchedBook = book else { return }
+        if checkCartTitleExists(searchedBook.title) {
+            showAlert()
+        } else {
+            let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+            let bookToSave = Book(context: context)
+            bookToSave.title = searchedBook.title
+            bookToSave.author = searchedBook.authors?.joined(separator: ", ") ?? ""
+            bookToSave.salePrice = Int64(searchedBook.salePrice ?? 0 )
+            bookToSave.thumbnail = searchedBook.thumbnail
+            bookToSave.contents = searchedBook.contents
+            do {
+                try context.save()
+                dismissModal()
+                print("저장 성공")
+            } catch {
+                print("저장 실패: \(error)")
+            }
+        }
+    }
+    func checkCartTitleExists(_ title: String?) -> Bool {
         let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        let bookToSave = Book(context: context)
-        bookToSave.title = searchedBook.title
-        bookToSave.author = searchedBook.authors?.joined(separator: ", ") ?? ""
-        bookToSave.salePrice = Int64(searchedBook.salePrice ?? 0 )
-        bookToSave.thumbnail = searchedBook.thumbnail
-        bookToSave.contents = searchedBook.contents
+        let fetchRequest = NSFetchRequest<NSManagedObject>(entityName:"Book")
+        var cartAddArray: [[String: Any]] = []
         do {
-            try context.save()
-            print("저장 성공")
+            let books = try context.fetch(fetchRequest)
+            cartAddArray = books.map { book in
+                var dict: [String: Any] = [:]
+                dict["title"] = book.value(forKey: "title") as? String ?? ""
+                dict["author"] = book.value(forKey: "author") as? String ?? ""
+                dict["price"] = book.value(forKey: "salePrice") as? Int ?? 0
+                return dict
+            }
+            for cartAddedBook in cartAddArray {
+                if cartAddedBook["title"] as? String == title {
+                    return true
+                }
+            }
+            return false
         } catch {
-            print("저장 실패: \(error)")
+            print("데이터 로딩 실패: \(error)")
+        }
+        return false
+    }
+    
+    func showAlert() {
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "오류 메세지", message: "이미 동일한 책이 존재합니다.", preferredStyle: .alert)
+            let sucess = UIAlertAction(title: "확인", style: .default)
+            alert.addAction(sucess)
+            self.present(alert, animated: true)
         }
     }
 }
