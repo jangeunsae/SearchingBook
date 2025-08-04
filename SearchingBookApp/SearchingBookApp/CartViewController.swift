@@ -21,6 +21,10 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
     override func viewDidLoad() {
         super.viewDidLoad()
         setupView()
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         fetchBooksData()
     }
     
@@ -118,6 +122,26 @@ class CartViewController: UIViewController, UITableViewDataSource, UITableViewDe
         cell.bookAuthorLabel.text = addBook["author"] as? String
         cell.bookPriceLabel.text = "\(formattedCartPrice)원"
         return cell
+    }
+    
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle { return .delete }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
+            deleteData(title: cartAddArray[indexPath.row]["title"] as! String)
+            cartAddArray.remove(at: indexPath.row)
+            tableView.deleteRows(at: [indexPath], with: .automatic) }
+    }
+    
+    func deleteData(title: String) {
+        let context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        let request = Book.fetchRequest()
+        guard let books = try? context.fetch(request) else { return }
+        let filteredContacts = books.filter({ $0.title == title })
+        for contact in filteredContacts {
+            context.delete(contact)
+        }
+        try? context.save()
     }
 }
 class cartAddCell: UITableViewCell {
